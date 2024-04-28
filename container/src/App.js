@@ -2,50 +2,43 @@ import React from "react";
 import { useState, useEffect } from "react";
 import "./App.css";
 
+import RemoteWrapper from "./RemoteWrapper";
+const RemoteApp = React.lazy(() => import("Remote/App"));
+const HostApp = React.lazy(() => import("HostApp/App"));
+
 function App() {
   const [fieldValue, setFieldValue] = useState("");
-  const [letterValue, setLetterValue] = useState("");
-
-  // Function to handle field change
-  const handleFieldChange = (event) => {
-    const newValue = event.target.value;
-    setFieldValue(newValue);
-
-    // Send message to micro frontend
-    window.postMessage({ type: "nameUpdate", value: newValue }, "*");
-  };
 
   useEffect(() => {
-    // Listen for messages from host
-    window.addEventListener("message", handleMessage);
+    const channel = new BroadcastChannel("userChannel");
+    channel.onmessage = (event) => {
+      if (event.data.type === "userNameUpdate") {
+        setFieldValue(event.data.value);
+      }
+    };
 
-    // Cleanup on unmount
     return () => {
-      window.removeEventListener("message", handleMessage);
+      channel.close();
     };
   }, []);
 
-  const handleMessage = (event) => {
-    if (event.data && event.data.type === "letterUpdate") {
-      const newValue = event.data.value;
-      setLetterValue(newValue);
-    }
-
-    console.log("CONTAINER APP: ", event.data, event.data.type);
+  const handleClick = () => {
+    const channel = new BroadcastChannel("counterChannel");
+    channel.postMessage({ type: "increment" });
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h5>HOST application</h5>
-        <input
-          type="text"
-          id="name"
-          placeholder="Enter FirstName"
-          value={fieldValue}
-          onChange={handleFieldChange}
-        />
-        <p>{letterValue !== "" ? letterValue : "No message from child app"}</p>
+        <h6>HOST0</h6>
+        <p>Current User: {fieldValue}</p>
+        <button onClick={handleClick}>Increment Counter in Remote-1</button>
+        <RemoteWrapper>
+          <RemoteApp />
+        </RemoteWrapper>
+        <RemoteWrapper>
+          <HostApp />
+        </RemoteWrapper>
       </header>
     </div>
   );

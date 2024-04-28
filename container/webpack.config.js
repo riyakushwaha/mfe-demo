@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebackPlugin = require("html-webpack-plugin");
+const { dependencies } = require("./package.json");
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 
 module.exports = {
@@ -7,10 +8,21 @@ module.exports = {
   output: { path: path.resolve(__dirname, "dist") },
   plugins: [
     new ModuleFederationPlugin({
-      name: "container",
+      name: "Host0",
       remotes: {
-        products: "products@http://localhost:8081/remoteEntry.js",
-        carts: "carts@http://localhost:8082/remoteEntry.js",
+        Remote: "Remote0@http://localhost:8081/moduleEntry.js",
+        HostApp: "Host1@http://localhost:9090/moduleEntry.js",
+      },
+      shared: {
+        ...dependencies,
+        react: {
+          singleton: true,
+          requiredVersion: dependencies["react"],
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: dependencies["react-dom"],
+        },
       },
     }),
     new HtmlWebackPlugin({

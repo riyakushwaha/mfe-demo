@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebackPlugin = require("html-webpack-plugin");
+const { dependencies } = require("./package.json");
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 
 module.exports = {
@@ -7,10 +8,21 @@ module.exports = {
   output: { path: path.resolve(__dirname, "dist") },
   plugins: [
     new ModuleFederationPlugin({
-      name: "products",
-      filename: "remoteEntry.js",
+      name: "Remote1",
+      filename: "moduleEntry.js",
       exposes: {
-        "./ProductsIndex": "./src/index",
+        "./App": "./src/App",
+      },
+      shared: {
+        ...dependencies,
+        react: {
+          singleton: true,
+          requiredVersion: dependencies["react"],
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: dependencies["react-dom"],
+        },
       },
     }),
     new HtmlWebackPlugin({
@@ -38,6 +50,6 @@ module.exports = {
   },
   mode: "development",
   devServer: {
-    port: 8081,
+    port: 9091,
   },
 };

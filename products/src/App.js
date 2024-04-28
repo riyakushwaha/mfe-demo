@@ -3,69 +3,34 @@ import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [fieldValue, setFieldValue] = useState("");
-  const [emailValue, setEmailValue] = useState("");
-  const [letterValue, setLetterValue] = useState("");
-
-  const handleMessage = (event) => {
-    if (event.data && event.data.type === "nameUpdate") {
-      const newValue = event.data.value;
-      setFieldValue(newValue);
-    }
-
-    if (event.data && event.data.type === "emailUpdate") {
-      const newValue = event.data.value;
-      setEmailValue(newValue);
-    }
-
-    console.log("CONTAINER APP: ", event.data, event.data.type);
-  };
+  const [counter, setCounter] = useState(0);
 
   useEffect(() => {
-    // Listen for messages from host
-    window.addEventListener("message", handleMessage);
+    const channel_host0 = new BroadcastChannel("counterChannel");
+    channel_host0.onmessage = (event) => {
+      if (event.data.type === "increment") {
+        setCounter((prevCounter) => prevCounter + 1);
+      }
+    };
 
-    // Cleanup on unmount
+    const channel_remote0 = new BroadcastChannel("counterChannelReset");
+    channel_remote0.onmessage = (event) => {
+      if (event.data.type === "reset") {
+        setCounter(0);
+      }
+    };
+
     return () => {
-      window.removeEventListener("message", handleMessage);
+      channel_host0.close();
+      channel_remote0.close();
     };
   }, []);
-
-  const handleFieldChange = (event) => {
-    const newValue = event.target.value;
-    setLetterValue(newValue);
-
-    // Send message to micro frontend
-    window.postMessage({ type: "letterUpdate", value: newValue }, "*");
-  };
 
   return (
     <div className="App1">
       <header className="App1-header">
-        <p>INTEGRATED application 1</p>
-        <input
-          type="text"
-          id="fname"
-          placeholder="First Name"
-          value={fieldValue}
-          onChange={(e) => setFieldValue(event.target.value)}
-        />
-        <br />
-        <input
-          type="text"
-          id="email"
-          placeholder="Email Address"
-          value={emailValue}
-          onChange={(e) => setEmailValue(event.target.value)}
-        />
-        <br />
-        <input
-          type="text"
-          id="letter"
-          placeholder="Enter message for host application"
-          value={letterValue}
-          onChange={handleFieldChange}
-        />
+        <p>REMOTE1</p>
+        <>Counter: {counter}</>
       </header>
     </div>
   );

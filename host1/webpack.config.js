@@ -8,10 +8,13 @@ module.exports = {
   output: { path: path.resolve(__dirname, "dist") },
   plugins: [
     new ModuleFederationPlugin({
-      name: "Remote0",
+      name: "Host1",
       filename: "moduleEntry.js",
       exposes: {
         "./App": "./src/App",
+      },
+      remotes: {
+        Remote: "Remote1@http://localhost:9091/moduleEntry.js",
       },
       shared: {
         ...dependencies,
@@ -50,6 +53,6 @@ module.exports = {
   },
   mode: "development",
   devServer: {
-    port: 8081,
+    port: 9090,
   },
 };
